@@ -191,9 +191,18 @@ pub(crate) enum Error<'src> {
   },
 }
 
+use config::Config;
 impl<'src> Error<'src> {
-  pub(crate) fn code(&self) -> Option<i32> {
+  pub(crate) fn code(&self, config: Option<&Config>) -> Option<i32> {
     match self {
+      Self::UnknownRecipe { .. } => {
+        if let Some(config) = config {
+          if config.ignore_missing {
+            return Some(0);
+          }
+        }
+        Some(EXIT_FAILURE)
+      }
       Self::Code { code, .. }
       | Self::Backtick {
         output_error: OutputError::Code(code),

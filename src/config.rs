@@ -19,6 +19,7 @@ pub(crate) struct Config {
   pub(crate) explain: bool,
   pub(crate) highlight: bool,
   pub(crate) invocation_directory: PathBuf,
+  pub(crate) ignore_missing: bool,
   pub(crate) list_heading: String,
   pub(crate) list_prefix: String,
   pub(crate) list_submodules: bool,
@@ -93,6 +94,7 @@ mod arg {
   pub(crate) const EXPLAIN: &str = "EXPLAIN";
   pub(crate) const GLOBAL_JUSTFILE: &str = "GLOBAL-JUSTFILE";
   pub(crate) const HIGHLIGHT: &str = "HIGHLIGHT";
+  pub(crate) const IGNORE_MISSING: &str = "IGNORE-MISSING";
   pub(crate) const JUSTFILE: &str = "JUSTFILE";
   pub(crate) const LIST_HEADING: &str = "LIST-HEADING";
   pub(crate) const LIST_PREFIX: &str = "LIST-PREFIX";
@@ -233,6 +235,13 @@ impl Config {
           .action(ArgAction::SetTrue)
           .help("Highlight echoed recipe lines in bold")
           .overrides_with(arg::NO_HIGHLIGHT),
+      )
+      .arg(
+        Arg::new(arg::IGNORE_MISSING)
+          .long("ignore-missing")
+          .env("JUST_IGNORE_MISSING")
+          .action(ArgAction::SetTrue)
+          .help("Exit silently with code 0 if requested recipe is not found"),
       )
       .arg(
         Arg::new(arg::JUSTFILE)
@@ -723,6 +732,7 @@ impl Config {
         .clone(),
       explain,
       highlight: !matches.get_flag(arg::NO_HIGHLIGHT),
+      ignore_missing: matches.get_flag(arg::IGNORE_MISSING),
       invocation_directory: env::current_dir().context(config_error::CurrentDirContext)?,
       list_heading: matches.get_one::<String>(arg::LIST_HEADING).unwrap().into(),
       list_prefix: matches.get_one::<String>(arg::LIST_PREFIX).unwrap().into(),
